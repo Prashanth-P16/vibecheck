@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: transparent;
+    width: 560px;
+    height: 620px;
+    overflow: hidden;
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+
+  .card {
+    width: 100%;
+    height: 100%;
+    background: #0d0d0d;
+    border: 1px solid #222;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    padding: 28px;
+    position: relative;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+    overflow: hidden;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: #1a1a1a;
+    border: none;
+    color: #555;
+    font-size: 16px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-app-region: no-drag;
+    transition: color 0.15s;
+    z-index: 10;
+  }
+  .close-btn:hover { color: #fff; }
+
+  /* Progress */
+  .top-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .progress-bar {
+    flex: 1;
+    height: 3px;
+    background: #1a1a1a;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #7c3aed, #db2777);
+    border-radius: 99px;
+    transition: width 0.3s ease;
+  }
+
+  .step-label {
+    font-size: 11px;
+    color: #444;
+    white-space: nowrap;
+  }
+
+  /* Screens */
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* API Key screen */
+  .screen-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .screen-sub {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 24px;
+    line-height: 1.7;
+  }
+  .screen-sub a { color: #7c3aed; text-decoration: none; }
+
+  input, textarea {
+    width: 100%;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #e8e8e8;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-app-region: no-drag;
+    resize: none;
+  }
+  input:focus, textarea:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 24px;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    -webkit-app-region: no-drag;
+    color: white;
+    background: #7c3aed;
+    width: 100%;
+    margin-top: 12px;
+  }
+  .btn:hover { background: #6d28d9; transform: translateY(-1px); }
+  .btn:disabled { background: #2a1a4a; color: #555; cursor: not-allowed; transform: none; }
+
+  .btn-ghost {
+    background: #1a1a1a;
+    color: #666;
+    margin-top: 8px;
+  }
+  .btn-ghost:hover { background: #222; color: #999; transform: none; }
+
+  /* Question screen */
+  .q-num {
+    font-size: 11px;
+    color: #7c3aed;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .q-hint {
+    font-size: 11px;
+    color: #333;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .q-nav {
+    display: flex;
+    gap: 10px;
+    margin-top: auto;
+    padding-top: 16px;
+  }
+
+  .btn-back {
+    background: #1a1a1a;
+    color: #666;
+    width: auto;
+    padding: 13px 20px;
+    flex-shrink: 0;
+    margin-top: 0;
+  }
+  .btn-back:hover { background: #222; color: #999; transform: none; }
+
+  .btn-next { margin-top: 0; }
+
+  /* Error */
+  .error {
+    background: rgba(255,23,68,0.08);
+    border: 1px solid rgba(255,23,68,0.2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #ff8a80;
+    font-size: 12px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* Loading screen */
+  .loading-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .orb {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #7c3aed, #db2777);
+    animation: pulse 1.5s ease-in-out infinite;
+    box-shadow: 0 0 40px rgba(124,58,237,0.4);
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  .loading-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .loading-sub { font-size: 12px; color: #444; }
+</style>
+</head>
+<body>
+<div class="card">
+  <button class="close-btn" onclick="window.vc.closeWindow()">✕</button>
+
+  <div class="top-row">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="step-label" id="step-label">0 / 11</div>
+  </div>
+
+  <!-- Screen 0: API Key -->
+  <div class="screen active" id="screen-apikey">
+    <div class="screen-title">One-time setup</div>
+    <div class="screen-sub">
+      VibeCheck uses Claude API to generate your verdict.<br>
+      Your key stays local — never sent anywhere except Anthropic.<br><br>
+      Get a free key → <a href="#" onclick="require('electron').shell.openExternal('https://console.anthropic.com')">console.anthropic.com</a>
+    </div>
+    <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." />
+    <div class="error" id="apikey-error"></div>
+    <button class="btn" onclick="saveApiKey()">Save & Continue →</button>
+  </div>
+
+  <!-- Screen 1: Idea -->
+  <div class="screen" id="screen-idea">
+    <div class="screen-title">Drop your idea.</div>
+    <div class="screen-sub">One sentence. Don't pitch — just describe.</div>
+    <textarea id="idea-input" rows="3" placeholder="e.g. A WhatsApp bot that sends appointment reminders for dentists in India"></textarea>
+    <div class="error" id="idea-error"></div>
+    <button class="btn" onclick="startQuestions()">Let's Go →</button>
+  </div>
+
+  <!-- Screen 2: Questions -->
+  <div class="screen" id="screen-questions">
+    <div class="q-num" id="q-num">Question 1 of 10</div>
+    <div class="screen-title" id="q-text" style="font-size:18px"></div>
+    <div class="q-hint" id="q-hint"></div>
+    <textarea id="q-answer" rows="5" placeholder="Your answer..."></textarea>
+    <div class="q-nav">
+      <button class="btn btn-back" id="btn-back" onclick="prevQ()">←</button>
+      <button class="btn btn-next" id="btn-next" onclick="nextQ()">Next →</button>
+    </div>
+  </div>
+
+  <!-- Screen 3: Loading -->
+  <div class="screen" id="screen-loading">
+    <div class="loading-wrap">
+      <div class="orb"></div>
+      <div class="loading-text">Running VibeCheck...</div>
+      <div class="loading-sub">consulting the brutal oracle (~15s)</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    text: "Who specifically pays for this?",
+    hint: "Not 'everyone'. Give me a real person — job title, situation, location."
+  },
+  {
+    text: "How do they solve this today?",
+    hint: "Spreadsheet? WhatsApp group? Competitor tool? Just ignoring it?"
+  },
+  {
+    text: "Why would they switch to yours?",
+    hint: "Not 'better UX'. What specific thing do you do that they can't do without you?"
+  },
+  {
+    text: "How many people actually have this problem?",
+    hint: "Be honest. Not the TAM — the number you can realistically reach."
+  },
+  {
+    text: "How do you make money?",
+    hint: "Subscription? One-time? Marketplace fees? What's the price?"
+  },
+  {
+    text: "What's the hardest part to build?",
+    hint: "Not the UI. The thing that will actually take months."
+  },
+  {
+    text: "Can one person run this alone?",
+    hint: "Support, bugs, marketing, billing — all of it on you. Can it work?"
+  },
+  {
+    text: "What happens if 10,000 users show up overnight?",
+    hint: "Does it break? Can you handle support? What fails first?"
+  },
+  {
+    text: "Name one company that already does something similar.",
+    hint: "If you say none exist, look harder. They're there."
+  },
+  {
+    text: "Why are YOU the right person to build this?",
+    hint: "Not passion. What lived experience or unfair advantage do you have?"
+  }
+];
+
+let apiKey = localStorage.getItem('vc_apikey') || '';
+let idea = '';
+let answers = new Array(10).fill('');
+let currentQ = 0;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function updateProgress(step, total) {
+  document.getElementById('progress-fill').style.width = ((step / total) * 100) + '%';
+  document.getElementById('step-label').textContent = step + ' / ' + total;
+}
+
+// Check if we already have an API key
+if (apiKey) {
+  showScreen('screen-idea');
+  updateProgress(0, 11);
+} else {
+  updateProgress(0, 11);
+}
+
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  const err = document.getElementById('apikey-error');
+
+  if (!val.startsWith('sk-ant-')) {
+    err.textContent = 'That doesn\'t look like a valid Anthropic API key (should start with sk-ant-)';
+    err.style.display = 'block';
+    return;
+  }
+
+  err.style.display = 'none';
+  apiKey = val;
+  localStorage.setItem('vc_apikey', apiKey);
+  showScreen('screen-idea');
+  updateProgress(0, 11);
+}
+
+function startQuestions() {
+  const val = document.getElementById('idea-input').value.trim();
+  const err = document.getElementById('idea-error');
+
+  if (!val) {
+    err.textContent = 'You need to enter your idea first.';
+    err.style.display = 'block';
+    return;
+  }
+
+  err.style.display = 'none';
+  idea = val;
+  currentQ = 0;
+  renderQuestion();
+  showScreen('screen-questions');
+  updateProgress(1, 11);
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  document.getElementById('q-num').textContent = `Question ${currentQ + 1} of 10`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-hint').textContent = q.hint;
+  document.getElementById('q-answer').value = answers[currentQ];
+
+  const backBtn = document.getElementById('btn-back');
+  backBtn.style.display = currentQ === 0 ? 'none' : 'flex';
+
+  const nextBtn = document.getElementById('btn-next');
+  nextBtn.textContent = currentQ === 9 ? 'Get My Verdict 🔮' : 'Next →';
+
+  setTimeout(() => document.getElementById('q-answer').focus(), 100);
+}
+
+function nextQ() {
+  answers[currentQ] = document.getElementById('q-answer').value.trim();
+
+  if (currentQ < 9) {
+    currentQ++;
+    renderQuestion();
+    updateProgress(currentQ + 1, 11);
+  } else {
+    // Submit
+    submitAnswers();
+  }
+}
+
+function prevQ() {
+  answers[currentQ] = document.getElementById('q-answer').value.trim();
+  if (currentQ > 0) {
+    currentQ--;
+    renderQuestion();
+    updateProgress(currentQ + 1, 11);
+  }
+}
+
+function submitAnswers() {
+  showScreen('screen-loading');
+  updateProgress(11, 11);
+
+  window.vc.submitAnswers({ idea, answers, apiKey });
+}
+
+window.vc.onError((msg) => {
+  showScreen('screen-questions');
+  updateProgress(10, 11);
+  const err = document.createElement('div');
+  err.style.cssText = 'color:#ff8a80;font-size:12px;margin-top:8px;';
+  err.textContent = 'Error: ' + msg;
+  document.getElementById('screen-questions').appendChild(err);
+});
+
+// Handle Enter key in answer field
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.metaKey) nextQ();
+});
+</script>
+</body>
+</html>

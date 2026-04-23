@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: transparent;
+    width: 600px;
+    height: 700px;
+    overflow: hidden;
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+
+  .card {
+    width: 100%;
+    height: 100%;
+    background: #0d0d0d;
+    border: 1px solid #222;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+    overflow: hidden;
+  }
+
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #1a1a1a;
+    flex-shrink: 0;
+    -webkit-app-region: drag;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    color: #7c3aed;
+    letter-spacing: 0.1em;
+  }
+
+  .top-actions {
+    display: flex;
+    gap: 8px;
+    -webkit-app-region: no-drag;
+  }
+
+  .icon-btn {
+    background: #1a1a1a;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { background: #222; color: #fff; }
+
+  .report-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    -webkit-app-region: no-drag;
+  }
+
+  .report-scroll::-webkit-scrollbar { width: 4px; }
+  .report-scroll::-webkit-scrollbar-track { background: transparent; }
+  .report-scroll::-webkit-scrollbar-thumb { background: #222; border-radius: 99px; }
+
+  /* Score header */
+  .score-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .score-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .score-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .score-label {
+    font-size: 9px;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .verdict-wrap {}
+
+  .verdict-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-family: 'Syne', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .verdict-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.3;
+  }
+
+  /* Markdown output */
+  .md h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 20px 0 10px;
+  }
+  .md h2:first-child { margin-top: 0; }
+  .md p { font-size: 13px; color: #aaa; line-height: 1.7; margin-bottom: 10px; }
+  .md ul { padding-left: 16px; margin-bottom: 10px; }
+  .md li { font-size: 13px; color: #aaa; line-height: 1.6; margin-bottom: 6px; }
+  .md strong { color: #ddd; }
+  .md em { color: #555; }
+  .md table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12px; }
+  .md th { text-align: left; padding: 8px 10px; background: #111; color: #555; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .md td { padding: 8px 10px; border-top: 1px solid #1a1a1a; color: #888; }
+  .md hr { border: none; border-top: 1px solid #1a1a1a; margin: 20px 0; }
+
+  .bottom-bar {
+    padding: 14px 20px;
+    border-top: 1px solid #1a1a1a;
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    -webkit-app-region: no-drag;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 11px;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    color: white;
+  }
+
+  .btn-primary { background: #7c3aed; }
+  .btn-primary:hover { background: #6d28d9; }
+
+  .btn-secondary { background: #1a1a1a; color: #888; }
+  .btn-secondary:hover { background: #222; color: #ccc; }
+
+  .copied-toast {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #7c3aed;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top-bar">
+    <div class="logo">🔮 VIBECHECK</div>
+    <div class="top-actions">
+      <button class="icon-btn" onclick="doRestart()" title="Check another idea">↺</button>
+      <button class="icon-btn" onclick="window.vc.closeWindow()" title="Close">✕</button>
+    </div>
+  </div>
+
+  <div class="report-scroll" id="report-content">
+    <div style="color:#444;font-size:13px;text-align:center;padding:40px 0">Loading your verdict...</div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="btn btn-secondary" onclick="copyReport()">Copy Report</button>
+    <button class="btn btn-primary" onclick="doRestart()">Check Another Idea →</button>
+  </div>
+</div>
+
+<div class="copied-toast" id="toast">Copied!</div>
+
+<script>
+let fullReport = '';
+
+function parseScore(text) {
+  const match = text.match(/VIBE SCORE:\s*(\d+)/i);
+  return match ? parseInt(match[1]) : null;
+}
+
+function getScoreStyle(score) {
+  if (score >= 80) return { color: '#00e676', badgeClass: 'strong', badgeText: '🟢 STRONG VIBE', verdict: 'Build this.' };
+  if (score >= 60) return { color: '#ffd600', badgeClass: 'risky', badgeText: '🟡 RISKY VIBE', verdict: 'Fixable — but here\'s what could kill it.' };
+  if (score >= 40) return { color: '#ff6d00', badgeClass: 'weak', badgeText: '🟠 WEAK VIBE', verdict: 'Needs a serious pivot.' };
+  return { color: '#ff1744', badgeClass: 'dead', badgeText: '🔴 DEAD ON ARRIVAL', verdict: 'Don\'t build this. Build this instead.' };
+}
+
+function badgeBg(cls) {
+  const map = { strong: 'rgba(0,230,118,0.12)', risky: 'rgba(255,214,0,0.12)', weak: 'rgba(255,109,0,0.12)', dead: 'rgba(255,23,68,0.12)' };
+  return map[cls];
+}
+
+function renderMarkdown(text) {
+  // Remove the score line (we render it separately)
+  let t = text.replace(/##\s*VIBE SCORE:.*\n?/gi, '');
+  // Remove verdict line
+  t = t.replace(/[🟢🟡🟠🔴]\s*[A-Z ]+—[^\n]*\n?/g, '');
+
+  t = t
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^---$/gm, '<hr>')
+    .replace(/^\| (.+) \|$/gm, (_, row) => {
+      const cells = row.split(' | ');
+      const isHeader = row.includes('---');
+      if (isHeader) return '';
+      const tag = 'td';
+      return '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+    });
+
+  // Wrap table rows
+  t = t.replace(/(<tr>.*<\/tr>\n?)+/g, (m) => `<table><thead></thead><tbody>${m}</tbody></table>`);
+
+  // Lists
+  t = t.replace(/^[•\-\*] (.+)$/gm, '<li>$1</li>');
+  t = t.replace(/(<li>.*<\/li>\n?)+/g, (m) => `<ul>${m}</ul>`);
+
+  // Paragraphs
+  t = t.split('\n\n').map(block => {
+    if (block.match(/^<(h[23]|ul|table|hr)/)) return block;
+    if (!block.trim()) return '';
+    return `<p>${block.replace(/\n/g, ' ')}</p>`;
+  }).join('\n');
+
+  return t;
+}
+
+window.vc.onReport((report) => {
+  fullReport = report;
+  const score = parseScore(report);
+  const style = score !== null ? getScoreStyle(score) : null;
+
+  let html = '';
+
+  if (score !== null && style) {
+    html += `
+      <div class="score-header">
+        <div class="score-ring" style="border-color:${style.color};color:${style.color}">
+          <div class="score-num">${score}</div>
+          <div class="score-label">/ 100</div>
+        </div>
+        <div class="verdict-wrap">
+          <div class="verdict-badge" style="background:${badgeBg(style.badgeClass)};color:${style.color}">${style.badgeText}</div>
+          <div class="verdict-title">${style.verdict}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `<div class="md">${renderMarkdown(report)}</div>`;
+  document.getElementById('report-content').innerHTML = html;
+});
+
+function copyReport() {
+  window.vc.copyReport(fullReport);
+  const toast = document.getElementById('toast');
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.opacity = '0'; }, 1800);
+}
+
+function doRestart() {
+  window.vc.restart();
+}
+</script>
+</body>
+</html>

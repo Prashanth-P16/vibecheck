@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Mono', monospace;
+    background: transparent;
+    width: 480px;
+    height: 320px;
+    overflow: hidden;
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+
+  .card {
+    width: 100%;
+    height: 100%;
+    background: #0d0d0d;
+    border: 1px solid #222;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    background: #1a1a1a;
+    border: none;
+    color: #555;
+    font-size: 16px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-app-region: no-drag;
+    transition: color 0.15s;
+  }
+  .close-btn:hover { color: #fff; }
+
+  .emoji {
+    font-size: 52px;
+    margin-bottom: 16px;
+    animation: bob 1.5s ease-in-out infinite;
+  }
+
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .roast-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 10px;
+    min-height: 56px;
+    line-height: 1.3;
+  }
+
+  .sub-text {
+    font-size: 12px;
+    color: #444;
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .btn {
+    background: #7c3aed;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 32px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #6d28d9; transform: translateY(-1px); }
+
+  .bar-wrap {
+    width: 100%;
+    height: 3px;
+    background: #1a1a1a;
+    border-radius: 99px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .bar {
+    height: 100%;
+    background: linear-gradient(90deg, #7c3aed, #db2777);
+    border-radius: 99px;
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <button class="close-btn" onclick="window.vc.closeWindow()">✕</button>
+
+  <div class="emoji" id="emoji">🤔</div>
+  <div class="roast-text" id="roast-text">Loading brutal honesty...</div>
+  <div class="sub-text" id="sub-text">preparing your reality check</div>
+  <div class="bar-wrap"><div class="bar" id="bar"></div></div>
+  <button class="btn" id="start-btn" style="display:none" onclick="window.vc.roastDone()">
+    Fine. Check My Idea →
+  </button>
+</div>
+
+<script>
+const roasts = [
+  { emoji: '🤔', text: "Another startup idea?", sub: "let me guess... 'like uber but for...'" },
+  { emoji: '😐', text: "You've definitely told\nyour friends this is genius.", sub: "your friends are liars" },
+  { emoji: '🧐', text: "Let's see if this survives\n10 actual questions.", sub: "spoiler: most don't" },
+  { emoji: '💀', text: "The idea graveyard is full\nof 'revolutionary' apps.", sub: "rest in peace, 2am ideas" },
+  { emoji: '🔮', text: "VibeCheck has seen\n10,000 ideas.", sub: "yours is probably the same as #4,731" },
+  { emoji: '😤', text: "OK fine.\nMaybe yours is different.", sub: "prove it." },
+];
+
+let i = 0;
+let progress = 0;
+
+const emojiEl = document.getElementById('emoji');
+const roastEl = document.getElementById('roast-text');
+const subEl = document.getElementById('sub-text');
+const barEl = document.getElementById('bar');
+const btnEl = document.getElementById('start-btn');
+
+function showRoast(index) {
+  const r = roasts[index];
+  emojiEl.style.opacity = 0;
+  roastEl.style.opacity = 0;
+  subEl.style.opacity = 0;
+
+  setTimeout(() => {
+    emojiEl.textContent = r.emoji;
+    roastEl.textContent = r.text;
+    subEl.textContent = r.sub;
+    emojiEl.style.opacity = 1;
+    roastEl.style.opacity = 1;
+    subEl.style.opacity = 1;
+  }, 200);
+}
+
+// Transitions
+const emojiEl2 = emojiEl;
+emojiEl2.style.transition = 'opacity 0.2s';
+roastEl.style.transition = 'opacity 0.2s';
+subEl.style.transition = 'opacity 0.2s';
+
+showRoast(0);
+
+const interval = setInterval(() => {
+  i++;
+  progress = (i / roasts.length) * 100;
+  barEl.style.width = progress + '%';
+
+  if (i < roasts.length) {
+    showRoast(i);
+  } else {
+    clearInterval(interval);
+    barEl.style.width = '100%';
+    emojiEl.textContent = '🎯';
+    roastEl.textContent = "Alright.\nLet's actually hear it.";
+    subEl.textContent = '10 questions. no mercy.';
+    setTimeout(() => { btnEl.style.display = 'block'; }, 300);
+  }
+}, 900);
+</script>
+</body>
+</html>

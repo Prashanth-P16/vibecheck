@@ -1,0 +1,24 @@
+{
+  "name": "vibecheck",
+  "version": "1.0.0",
+  "description": "Tray tool that asks your AI the 10 questions your idea needs answered.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.vibecheck.app",
+    "productName": "VibeCheck",
+    "mac": { "category": "public.app-category.developer-tools", "target": "dmg" },
+    "win": { "target": "nsis" },
+    "linux": { "target": "AppImage" }
+  }
+}
